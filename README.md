@@ -8,6 +8,8 @@
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.109-teal.svg)](https://fastapi.tiangolo.com/)
 [![Redis](https://img.shields.io/badge/Redis-7-red.svg)](https://redis.io/)
 [![XGBoost](https://img.shields.io/badge/XGBoost-2.0-yellow.svg)](https://xgboost.readthedocs.io/)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-Online-success.svg)](https://phishing-ml-service.onrender.com)
+[![API Status](https://img.shields.io/badge/API-Active-brightgreen.svg)](https://phishing-ml-service.onrender.com/health)
 
 ## 🎯 Project Overview
 

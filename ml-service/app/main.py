@@ -110,6 +110,28 @@ async def health_check():
     }
 
 
+@app.get("/debug")
+async def debug_info():
+    """Debug endpoint to check file system and environment"""
+    import os
+    from pathlib import Path
+    
+    base_dir = Path(__file__).parent.parent
+    models_dir = base_dir / "models"
+    model_path = models_dir / "phishing_model.pkl"
+    
+    return {
+        "base_dir": str(base_dir),
+        "models_dir": str(models_dir),
+        "model_path": str(model_path),
+        "model_exists": os.path.exists(model_path),
+        "models_dir_exists": os.path.exists(models_dir),
+        "models_dir_contents": os.listdir(models_dir) if os.path.exists(models_dir) else [],
+        "current_dir": os.getcwd(),
+        "app_dir_contents": os.listdir(base_dir) if os.path.exists(base_dir) else []
+    }
+
+
 @app.post("/predict", response_model=PredictionResponse)
 async def predict_url(request: URLRequest):
     """

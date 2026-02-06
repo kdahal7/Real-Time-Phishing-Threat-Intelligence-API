@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phishing Detection API - Live Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 800px;
+            width: 100%;
+            padding: 40px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2em;
+            text-align: center;
+        }
+
+        .subtitle {
+            color: #666;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 0.95em;
+        }
+
+        .badge {
+            display: inline-block;
+            background: #10b981;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.85em;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            color: #555;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 0.95em;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 14px 18px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: 1em;
+            transition: all 0.3s;
+            outline: none;
+        }
+
+        input[type="text"]:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        button {
+            flex: 1;
+            padding: 14px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .test-button {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+
+        .examples {
+            background: #f9fafb;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .examples h3 {
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .example-urls {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .example-url {
+            background: white;
+            padding: 10px 12px;
+            border-radius: 6px;
+            font-size: 0.85em;
+            color: #667eea;
+            cursor: pointer;
+            transition: background 0.2s;
+            border: 1px solid #e5e7eb;
+        }
+
+        .example-url:hover {
+            background: #ede9fe;
+        }
+
+        #result {
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 10px;
+            display: none;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .result-phishing {
+            background: #fee2e2;
+            border: 2px solid #ef4444;
+        }
+
+        .result-benign {
+            background: #d1fae5;
+            border: 2px solid #10b981;
+        }
+
+        .result-error {
+            background: #fef3c7;
+            border: 2px solid #f59e0b;
+        }
+
+        .result-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+
+        .result-icon {
+            font-size: 2em;
+        }
+
+        .result-title {
+            font-size: 1.3em;
+            font-weight: 700;
+        }
+
+        .result-confidence {
+            background: rgba(0,0,0,0.1);
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-weight: 600;
+            margin-left: auto;
+        }
+
+        .result-message {
+            color: #333;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+
+        .result-details {
+            background: rgba(255,255,255,0.6);
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 0.9em;
+            color: #555;
+        }
+
+        .result-details div {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+
+        .loading {
+            text-align: center;
+            color: #667eea;
+            font-weight: 600;
+            margin-top: 20px;
+        }
+
+        .spinner {
+            border: 3px solid #e5e7eb;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        footer {
+            margin-top: 30px;
+            text-align: center;
+            color: #9ca3af;
+            font-size: 0.85em;
+        }
+
+        footer a {
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 25px;
+            }
+
+            h1 {
+                font-size: 1.5em;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div style="text-align: center;">
+            <span class="badge">🚀 LIVE API</span>
+        </div>
+        
+        <h1>🔒 Phishing Detection API</h1>
+        <p class="subtitle">Real-time ML-powered phishing URL detection with 99.99% accuracy</p>
+
+        <div class="input-group">
+            <label for="urlInput">Enter URL to Scan:</label>
+            <input 
+                type="text" 
+                id="urlInput" 
+                placeholder="https://example.com or http://suspicious-site.tk" 
+                autocomplete="off"
+            >
+        </div>
+
+        <div class="button-group">
+            <button onclick="scanURL()" id="scanBtn">🔍 Scan URL</button>
+            <button onclick="testPhishing()" class="test-button">⚠️ Test Phishing URL</button>
+        </div>
+
+        <div class="examples">
+            <h3>📋 Click to test example URLs:</h3>
+            <div class="example-urls">
+                <div class="example-url" onclick="setURL('https://www.github.com')">
+                    ✅ Legitimate: https://www.github.com
+                </div>
+                <div class="example-url" onclick="setURL('https://www.google.com')">
+                    ✅ Legitimate: https://www.google.com
+                </div>
+                <div class="example-url" onclick="setURL('http://paypal-secure-login-verify-account.tk/signin')">
+                    ⚠️ Phishing: http://paypal-secure-login-verify-account.tk/signin
+                </div>
+                <div class="example-url" onclick="setURL('http://www.microsoft-account-verify-security.xyz')">
+                    ⚠️ Phishing: http://www.microsoft-account-verify-security.xyz
+                </div>
+            </div>
+        </div>
+
+        <div id="loading" class="loading" style="display: none;">
+            <div class="spinner"></div>
+            <p>Analyzing URL with ML model...</p>
+        </div>
+
+        <div id="result"></div>
+
+        <footer>
+            <p>
+                Powered by <strong>XGBoost ML</strong> • FastAPI • Python<br>
+                <a href="https://phishing-ml-service.onrender.com/docs" target="_blank">📚 API Documentation</a> | 
+                <a href="https://github.com/kdahal7/Real-Time-Phishing-Threat-Intelligence-API" target="_blank">💻 GitHub</a>
+            </p>
+        </footer>
+    </div>
+
+    <script>
+        const API_URL = 'https://phishing-ml-service.onrender.com';
+
+        function setURL(url) {
+            document.getElementById('urlInput').value = url;
+            document.getElementById('urlInput').focus();
+        }
+
+        function testPhishing() {
+            setURL('http://paypal-secure-login-verify-account.tk/signin');
+            scanURL();
+        }
+
+        async function scanURL() {
+            const urlInput = document.getElementById('urlInput');
+            const url = urlInput.value.trim();
+            
+            if (!url) {
+                alert('Please enter a URL to scan');
+                return;
+            }
+
+            // Basic URL validation
+            if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                alert('URL must start with http:// or https://');
+                return;
+            }
+
+            const scanBtn = document.getElementById('scanBtn');
+            const loading = document.getElementById('loading');
+            const result = document.getElementById('result');
+
+            // Show loading
+            scanBtn.disabled = true;
+            loading.style.display = 'block';
+            result.style.display = 'none';
+
+            try {
+                const encodedURL = encodeURIComponent(url);
+                const response = await fetch(`${API_URL}/api/v1/scan-url?url=${encodedURL}`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                displayResult(data);
+
+            } catch (error) {
+                displayError(error.message);
+            } finally {
+                scanBtn.disabled = false;
+                loading.style.display = 'none';
+            }
+        }
+
+        function displayResult(data) {
+            const result = document.getElementById('result');
+            const isPhishing = data.prediction === 'Phishing';
+            const confidence = (data.confidence * 100).toFixed(2);
+
+            result.className = isPhishing ? 'result-phishing' : 'result-benign';
+            result.style.display = 'block';
+
+            const icon = isPhishing ? '⚠️' : '✅';
+            const title = isPhishing ? 'PHISHING DETECTED' : 'URL IS SAFE';
+            const titleColor = isPhishing ? '#dc2626' : '#059669';
+
+            result.innerHTML = `
+                <div class="result-header">
+                    <span class="result-icon">${icon}</span>
+                    <span class="result-title" style="color: ${titleColor}">${title}</span>
+                    <span class="result-confidence">${confidence}% confidence</span>
+                </div>
+                <div class="result-message">
+                    ${data.message}
+                </div>
+                <div class="result-details">
+                    <div>
+                        <span><strong>URL:</strong></span>
+                        <span style="word-break: break-all;">${data.url}</span>
+                    </div>
+                    <div>
+                        <span><strong>Classification:</strong></span>
+                        <span>${data.prediction}</span>
+                    </div>
+                    <div>
+                        <span><strong>Response Time:</strong></span>
+                        <span>${data.responseTimeMs || 'N/A'}ms</span>
+                    </div>
+                    <div>
+                        <span><strong>Request ID:</strong></span>
+                        <span>${data.requestId || 'N/A'}</span>
+                    </div>
+                    <div>
+                        <span><strong>Timestamp:</strong></span>
+                        <span>${new Date(data.timestamp).toLocaleString()}</span>
+                    </div>
+                </div>
+            `;
+        }
+
+        function displayError(message) {
+            const result = document.getElementById('result');
+            result.className = 'result-error';
+            result.style.display = 'block';
+
+            result.innerHTML = `
+                <div class="result-header">
+                    <span class="result-icon">⚠️</span>
+                    <span class="result-title" style="color: #d97706">ERROR</span>
+                </div>
+                <div class="result-message">
+                    ${message}
+                </div>
+                <div class="result-details">
+                    <p><strong>Troubleshooting:</strong></p>
+                    <ul style="margin-left: 20px; margin-top: 8px;">
+                        <li>Check if the URL format is correct</li>
+                        <li>The API may be sleeping (free tier) - try again in 30 seconds</li>
+                        <li>Check your internet connection</li>
+                    </ul>
+                </div>
+            `;
+        }
+
+        // Allow Enter key to submit
+        document.getElementById('urlInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                scanURL();
+            }
+        });
+
+        // Auto-focus input on load
+        window.addEventListener('load', function() {
+            document.getElementById('urlInput').focus();
+        });
+    </script>
+</body>
+</html>

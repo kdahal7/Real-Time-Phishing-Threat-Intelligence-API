@@ -2,12 +2,28 @@
 
 ## Overview
 
-This guide covers multiple ways to deploy your Real-Time Phishing Threat Intelligence API to the cloud. Choose based on your needs:
+This guide covers multiple ways to deploy your Real-Time Phishing Threat Intelligence API to the cloud.
 
-- **Easiest**: Render.com (Free tier available)
-- **Production-Ready**: AWS with ECS or DigitalOcean
-- **Enterprise**: Kubernetes on AWS/Azure/GCP
-- **Budget**: Railway, Fly.io, or Heroku alternatives
+### 🆓 **FREE Options (No Credit Card Required)**
+1. **Python-Only API**: Deploy just the ML service (skip Spring Boot) → 100% FREE
+2. **Railway.app**: $5 free credits → ~1 month free hosting  
+3. **Google Cloud**: $300 free credits → ~6 months free hosting
+4. **Render.com Free Tier**: Try Spring Boot on 512MB (might work)
+
+### 💳 **Paid Options** 
+- **Easiest Paid**: Render.com ($7-14/month)
+- **Production-Ready**: AWS with ECS or DigitalOcean ($25-60/month)
+- **Enterprise**: Kubernetes on AWS/Azure/GCP ($100+/month)
+
+---
+
+## 🆓 **BEST FREE OPTION: Python-Only Deployment**
+
+**Skip Spring Boot entirely** → Deploy just Python FastAPI → **$0/month**
+
+See [deploy-simple.md](deploy-simple.md) for the **completely free** deployment guide.
+
+This gives you the same phishing detection API without Java/Spring Boot costs.
 
 ---
 
@@ -61,13 +77,18 @@ git push -u origin main
    - **Root Directory**: `spring-gateway`
    - **Environment**: Docker
    - **Dockerfile Path**: `spring-gateway/Dockerfile`
-   - **Plan**: Starter ($7/month for 512MB) - Java needs more RAM
+   - **Plan**: Try **Free (512MB)** first, upgrade to Starter ($7/month) if needed
 4. **Add Environment Variables**:
    - `SPRING_DATA_REDIS_HOST`: (paste Redis URL hostname from Step 2, remove `redis://` and `:6379`)
    - `SPRING_DATA_REDIS_PORT`: `6379`
    - `ML_SERVICE_URL`: (paste ML service URL from Step 3)
    - `CACHE_TTL_SECONDS`: `3600`
+   - `JAVA_OPTS`: `-Xmx400m -Xms200m` (for free tier memory optimization)
 5. Click "Create Web Service"
+
+**💡 Free Tier Tips**: If the free 512MB crashes, either:
+- Upgrade to $7/month Starter plan, OR
+- Use the [Python-only deployment](deploy-simple.md) (100% free)
 
 ### Step 5: Test Your Deployment
 
@@ -476,10 +497,12 @@ az containerapp create \
 
 | Platform | Monthly Cost | Free Tier | Ease | Best For |
 |----------|--------------|-----------|------|----------|
-| **Render** | $0-14 | Yes (with sleep) | ⭐⭐⭐⭐⭐ | Quick demos |
-| **Railway** | $20 | $5 credit | ⭐⭐⭐⭐⭐ | Side projects |
+| **Python-Only** | **$0** | **Unlimited** | ⭐⭐⭐⭐⭐ | **Demos/Portfolio** |
+| **Railway** | $0-20 | **$5 credit** | ⭐⭐⭐⭐⭐ | **Side projects** |
+| **Google Cloud** | $0-15 | **$300 credit** | ⭐⭐⭐ | **Students** |
+| **Render Free** | $0-14 | **Yes (with sleep)** | ⭐⭐⭐⭐ | **Basic demos** |
+| **Render Paid** | $14 | Yes (with sleep) | ⭐⭐⭐⭐⭐ | Quick demos |
 | **DigitalOcean** | $27 | $200 credit | ⭐⭐⭐⭐ | Small business |
-| **Google Cloud Run** | $15 | $300 credit | ⭐⭐⭐ | Serverless |
 | **AWS ECS** | $60 | 12mo free tier | ⭐⭐⭐ | Enterprise |
 | **Azure** | $25 | $200 credit | ⭐⭐⭐ | .NET shops |
 
@@ -523,20 +546,26 @@ Before going live, ensure:
 
 ## 🚀 Quick Decision Tree
 
-**I want it free for demos:**
+**I want it completely FREE:**
+→ Use **Python-Only deployment** ([guide](deploy-simple.md))
+
+**I want FREE with more features (1 month):**
+→ Use **Railway.app** ($5 free credits)
+
+**I'm a student with lots of free credits:**
+→ Use **Google Cloud Run** ($300 free credits)
+
+**I want it free for demos (with sleep):**
 → Use **Render.com** (free tier with sleep)
 
-**I want it always-on and simple ($20/mo):**
-→ Use **Railway.app**
+**I want it always-on and simple ($14/mo):**
+→ Use **Render.com** (paid tier)
 
 **I want production-ready and affordable ($25-30/mo):**
 → Use **DigitalOcean App Platform**
 
 **I need enterprise features and scalability:**
 → Use **AWS ECS** or **Google Cloud Run**
-
-**I'm already using Azure:**
-→ Use **Azure Container Apps**
 
 ---
 

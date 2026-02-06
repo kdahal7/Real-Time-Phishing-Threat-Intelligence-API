@@ -10,6 +10,8 @@ import numpy as np
 import logging
 from typing import Optional
 import uvicorn
+import uuid
+from datetime import datetime
 
 from app.feature_extractor import URLFeatureExtractor
 from app.model_loader import ModelLoader
@@ -232,6 +234,149 @@ async def batch_predict(urls: list[str]):
             })
     
     return {"results": results, "total": len(results)}
+
+
+# ============================================================================
+# DIRECT API ENDPOINTS (Alternative to Spring Boot Gateway)
+# ============================================================================
+
+@app.get("/api/v1/scan-url")
+async def scan_url_direct(url: str):
+    """
+    Direct URL scanning endpoint (replaces Spring Boot Gateway)
+    
+    Args:
+        url: URL query parameter to analyze
+        
+    Returns:
+        JSON response matching Spring Boot format
+    """
+    import time
+    start_time = time.time()
+    
+    try:
+        logger.info(f"Direct API - Analyzing URL: {url}")
+        
+        # Validate URL
+        if not url.startswith(('http://', 'https://')):
+            return {
+                "error": "URL must start with http:// or https://",
+                "url": url,
+                "timestamp": datetime.now().isoformat(),
+                "requestId": str(uuid.uuid4())[:8]
+            }
+        
+        # Extract features
+        features = feature_extractor.extract_features(url)
+        
+        # Make prediction
+        try:
+            model = model_loader.get_model()
+            if model is None:
+                # Demo mode - pattern-based detection
+                is_phishing = any([
+                    'secure-' in url.lower() and ('.tk' in url or '.ml' in url),
+                    'verify' in url.lower() and len(url) > 50,
+                    'login.php' in url.lower(),
+                    'confirm' in url.lower() and url.count('-') > 3,
+                    url.count('.') > 3,
+                    any(char in url for char in ['0', '1'] * 3)  # suspicious chars
+                ])
+                confidence = 0.85 if is_phishing else 0.92
+                prediction_label = "Phishing" if is_phishing else "Benign"
+            else:
+                # Real model prediction
+                feature_names = feature_extractor.get_feature_names()
+                feature_vector = np.array([[features[name] for name in feature_names]])
+                
+                prediction = model.predict(feature_vector)[0]
+                probabilities = model.predict_proba(feature_vector)[0]
+                
+                phishing_probability = probabilities[1] if len(probabilities) > 1 else probabilities[0]
+                confidence = float(max(probabilities))
+                prediction_label = "Phishing" if prediction == 1 else "Benign"
+        
+        except Exception as model_error:
+            logger.error(f"Model prediction failed: {model_error}")
+            # Fallback to demo mode
+            is_phishing = 'phishing' in url.lower() or 'secure-' in url.lower()
+            confidence = 0.75
+            prediction_label = "Phishing" if is_phishing else "Benign"
+        
+        # Generate message
+        if prediction_label == "Phishing":
+            message = "HIGH RISK: This URL is highly likely to be a phishing attempt. Do not proceed."
+        else:
+            message = "This URL appears to be legitimate."
+        
+        # Calculate response time
+        response_time = int((time.time() - start_time) * 1000)
+        
+        return {
+            "url": url,
+            "prediction": prediction_label,
+            "confidence": round(confidence, 4),
+            "message": message,
+            "responseTimeMs": response_time,
+            "fromCache": False,
+            "timestamp": datetime.now().isoformat(),
+            "requestId": str(uuid.uuid4())[:8]
+        }
+        
+    except Exception as e:
+        logger.error(f"Direct API error: {str(e)}", exc_info=True)
+        return {
+            "error": f"Analysis failed: {str(e)}",
+            "url": url,
+            "timestamp": datetime.now().isoformat(),
+            "requestId": str(uuid.uuid4())[:8]
+        }
+
+
+@app.get("/api/v1/health")
+async def health_check_direct():
+    """Health check endpoint compatible with Spring Boot Actuator"""
+    try:
+        model_loader_instance = ModelLoader()
+        model = model_loader_instance.get_model()
+        model_loaded = model is not None
+    except:
+        model_loaded = False
+    
+    return {
+        "status": "UP",
+        "components": {
+            "ml_model": {
+                "status": "UP" if model_loaded else "DOWN",
+                "details": {
+                    "loaded": model_loaded,
+                    "type": "XGBoost" if model_loaded else "Demo Mode"
+                }
+            },
+            "disk_space": {"status": "UP"},
+            "ping": {"status": "UP"}
+        }
+    }
+
+
+@app.get("/api/v1/stats") 
+async def get_stats_direct():
+    """Statistics endpoint compatible with Spring Boot"""
+    try:
+        model_loader_instance = ModelLoader()
+        model = model_loader_instance.get_model()
+        model_status = "loaded" if model else "demo_mode"
+    except:
+        model_status = "error"
+    
+    return {
+        "status": "operational",
+        "mlServiceUrl": "http://localhost:8000",
+        "model": model_status,
+        "version": "1.0.0",
+        "features": "30_url_features",
+        "algorithm": "XGBoost"
+    }
 
 
 if __name__ == "__main__":

@@ -1,0 +1,63 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+*.egg-info/
+dist/
+build/
+*.pkl
+*.model
+*.joblib
+
+# Data files
+*.csv
+*.json
+data/
+datasets/
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+
+# Java
+target/
+*.class
+*.jar
+*.war
+*.ear
+*.log
+*.ctxt
+.mtj.tmp/
+
+# Maven
+.mvn/
+mvnw
+mvnw.cmd
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+*.iml
+
+# Logs
+logs/
+*.log
+
+# Redis
+dump.rdb
+
+# Docker
+.dockerignore
+
+# Environment
+.env
+.env.local

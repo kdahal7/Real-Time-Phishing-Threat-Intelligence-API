@@ -1,0 +1,26 @@
+# Development Dependencies
+*.pyc
+__pycache__/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# Logs
+*.log
+
+# Data
+*.csv
+data/
+datasets/
+
+# Models (too large for git)
+models/*.pkl
+models/*.model
+
+# Keep models directory structure
+!models/.gitkeep

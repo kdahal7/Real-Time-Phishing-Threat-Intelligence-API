@@ -1,0 +1,74 @@
+version: '3.8'
+
+services:
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: phishing-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    networks:
+      - phishing-network
+
+  # Python ML Inference Service
+  ml-service:
+    build: ./ml-service
+    container_name: phishing-ml-service
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./ml-service/models:/app/models
+      - ./ml-service/data:/app/data
+    environment:
+      - PYTHONUNBUFFERED=1
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - phishing-network
+    depends_on:
+      - redis
+
+  # Spring Boot API Gateway
+  spring-gateway:
+    build: ./spring-gateway
+    container_name: phishing-spring-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_DATA_REDIS_HOST=redis
+      - SPRING_DATA_REDIS_PORT=6379
+      - ML_SERVICE_URL=http://ml-service:8000
+      - CACHE_TTL_SECONDS=3600
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    networks:
+      - phishing-network
+    depends_on:
+      redis:
+        condition: service_healthy
+      ml-service:
+        condition: service_healthy
+
+volumes:
+  redis_data:
+    driver: local
+
+networks:
+  phishing-network:
+    driver: bridge
